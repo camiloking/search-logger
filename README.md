@@ -6,7 +6,7 @@ A deduplicated search logging function built in Go, designed to capture the **fi
 The solution is in `service/search_log_service.go`, in function LogSearch().
 
 The strategy involves utilizing a debounce mechanism to ensure that only the final search term is logged after a user has stopped typing for a specified period. This prevents logging intermediate search terms and reduces noise in the logs.
-It uses a cache to store the last search term for each user, as well as time of that search. 
+It uses a cache to store the last search term for each user, as well as time of that search. This solution avoids SQL pattern matching queries.
 
 To run tests,
 ```bash

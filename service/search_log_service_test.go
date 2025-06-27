@@ -189,7 +189,7 @@ func TestSearchLogService_LogSearch(t *testing.T) {
 		assert.Equal(t, 1, searchLog.Count)
 	})
 
-	t.Run("Log search in database when user has consecutive searches that don't prepend one another", func(t *testing.T) {
+	t.Run("Log only second search in database when user has consecutive searches that don't prepend one another, since they are made within LOG_SEARCH_DEBOUNCE_DELAY_SECONDS", func(t *testing.T) {
 		// ARRANGE
 		ctx := context.Background()
 		clientKey := "test-client-key"
@@ -199,6 +199,7 @@ func TestSearchLogService_LogSearch(t *testing.T) {
 		// ACT
 		err := service.LogSearch(ctx, clientKey, queryText1)
 		assert.NoError(t, err)
+		time.Sleep(500 * time.Millisecond)
 		err = service.LogSearch(ctx, clientKey, queryText2)
 		assert.NoError(t, err)
 
@@ -209,7 +210,7 @@ func TestSearchLogService_LogSearch(t *testing.T) {
 		// Both queries should be logged, since they're not prefixes of each other
 		searchLog, err := dbRepo.GetByQueryText(ctx, queryText1)
 		assert.NoError(t, err)
-		assert.Equal(t, 1, searchLog.Count)
+		assert.Nil(t, searchLog)
 		searchLog, err = dbRepo.GetByQueryText(ctx, queryText2)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, searchLog.Count)

@@ -33,7 +33,10 @@ func NewSearchLogService(db database.SearchLogRepository, cache cache.LatestClie
 func (sls searchLogService) LogSearch(ctx context.Context, clientIdentifier, queryText string) error {
 	currentNormalizedQueryText := strings.TrimSpace(strings.ToLower(queryText))
 
-	// Immediately set the latest client search in cache
+	// Immediately set the latest client search in cache.
+	// I think a possible improvement could be to use a client timestamp instead of server generated,
+	// in the event that multiple requests from the same user are processed at the exact same time by different servers. Or perhaps,
+	// LogSearch requests could be processed from a queue.
 	currentQueryTimeUnix := time.Now().Unix()
 	clientQueryValue := cache.NewClientQueryValue(currentNormalizedQueryText, currentQueryTimeUnix)
 	if err := sls.cache.Set(ctx, clientIdentifier, clientQueryValue); err != nil {
