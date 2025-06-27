@@ -24,8 +24,8 @@ func TestClientQueryCacheRepository_SetAndGet(t *testing.T) {
 		ctx := context.Background()
 		key := "test-key"
 		value := &ClientQueryValue{
-			QueryText:     "test-query",
-			CreatedAtUnix: time.Now().Unix(),
+			QueryText:                 "test-query",
+			CreatedAtUnixMilliseconds: time.Now().Unix(),
 		}
 
 		// Test Set
@@ -37,7 +37,7 @@ func TestClientQueryCacheRepository_SetAndGet(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotNil(t, result)
 		assert.Equal(t, value.QueryText, result.QueryText)
-		assert.Equal(t, value.CreatedAtUnix, result.CreatedAtUnix)
+		assert.Equal(t, value.CreatedAtUnixMilliseconds, result.CreatedAtUnixMilliseconds)
 	})
 
 	t.Run("Retrieve non-existent key", func(t *testing.T) {

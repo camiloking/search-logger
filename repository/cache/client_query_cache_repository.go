@@ -11,14 +11,14 @@ import (
 )
 
 type ClientQueryValue struct {
-	QueryText     string `json:"query_text"`
-	CreatedAtUnix int64  `json:"created_at_unix"`
+	QueryText                 string `json:"query_text"`
+	CreatedAtUnixMilliseconds int64  `json:"created_at_unix_ms"`
 }
 
-func NewClientQueryValue(queryText string, createdAtUnix int64) *ClientQueryValue {
+func NewClientQueryValue(queryText string, createdAtUnixMilli int64) *ClientQueryValue {
 	return &ClientQueryValue{
-		QueryText:     strings.ToLower(strings.TrimSpace(queryText)),
-		CreatedAtUnix: createdAtUnix,
+		QueryText:                 strings.ToLower(strings.TrimSpace(queryText)),
+		CreatedAtUnixMilliseconds: createdAtUnixMilli,
 	}
 }
 

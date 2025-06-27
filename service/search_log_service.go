@@ -37,7 +37,7 @@ func (sls searchLogService) LogSearch(ctx context.Context, clientIdentifier, que
 	// I think a possible improvement could be to use a client timestamp instead of server generated,
 	// in the event that multiple requests from the same user are processed at the exact same time by different servers. Or perhaps,
 	// LogSearch requests could be processed from a queue.
-	currentQueryTimeUnix := time.Now().Unix()
+	currentQueryTimeUnix := time.Now().UnixMilli()
 	clientQueryValue := cache.NewClientQueryValue(currentNormalizedQueryText, currentQueryTimeUnix)
 	if err := sls.cache.Set(ctx, clientIdentifier, clientQueryValue); err != nil {
 		return err
@@ -75,8 +75,8 @@ func (sls searchLogService) LogSearch(ctx context.Context, clientIdentifier, que
 
 func shouldPersistQuery(currentQueryTimeUnix int64, normalizedQueryText string, latestClientQueryValue *cache.ClientQueryValue) bool {
 	if latestClientQueryValue != nil {
-		// If queryTimeUnix is less than latestClientQueryValue.CreatedAtUnix, do not persist
-		if currentQueryTimeUnix < latestClientQueryValue.CreatedAtUnix {
+		// If queryTimeUnix is less than latestClientQueryValue.CreatedAtUnixMilliseconds, do not persist
+		if currentQueryTimeUnix < latestClientQueryValue.CreatedAtUnixMilliseconds {
 			return false
 		}
 
