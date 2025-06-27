@@ -40,6 +40,7 @@ func (sls searchLogService) LogSearch(ctx context.Context, clientIdentifier, que
 	currentQueryTimeUnix := time.Now().UnixMilli()
 	clientQueryValue := cache.NewClientQueryValue(currentNormalizedQueryText, currentQueryTimeUnix)
 	if err := sls.cache.Set(ctx, clientIdentifier, clientQueryValue); err != nil {
+		sls.logger.Error("Error setting latest client query in cache", "error", err, "clientIdentifier", clientIdentifier, "queryText", currentNormalizedQueryText)
 		return err
 	}
 

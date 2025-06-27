@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type SearchLogRequest struct {
+type SearchRequest struct {
 	QueryText string `json:"query_text"`
 }
 
@@ -19,8 +19,8 @@ func RegisterRoutes(r *gin.Engine, dbRepo database.SearchLogRepository, cacheRep
 	srv := service.NewSearchLogService(dbRepo, cacheRepo, logger)
 
 	// I did not write tests for this endpoint.  I just have it here to show where I would call LogSearch()
-	r.POST("/search-logs", func(c *gin.Context) {
-		var searchLog SearchLogRequest
+	r.POST("/search", func(c *gin.Context) {
+		var searchLog SearchRequest
 		if err := c.ShouldBindJSON(&searchLog); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -28,12 +28,14 @@ func RegisterRoutes(r *gin.Engine, dbRepo database.SearchLogRepository, cacheRep
 
 		// TODO: create clientIdentifier from userID + IP address. userID would likely come from a decoded JWT token. If userID is not present, we can rely on IP address.
 		clientIdentifier := ""
-		err := srv.LogSearch(c.Request.Context(), clientIdentifier, searchLog.QueryText)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
+		go func() {
+			_ = srv.LogSearch(c.Request.Context(), clientIdentifier, searchLog.QueryText)
+		}()
+
+		searchResult := map[string]interface{}{
+			"foo": "bar",
 		}
-		c.Status(http.StatusAccepted)
+		c.JSON(http.StatusOK, searchResult)
 	})
 
 }
