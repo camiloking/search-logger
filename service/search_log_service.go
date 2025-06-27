@@ -12,7 +12,7 @@ import (
 )
 
 type SearchLogService interface {
-	LogSearch(ctx context.Context, clientKey, queryText string) error
+	LogSearch(ctx context.Context, clientIdentifier, queryText string) error
 	GetSearchLogCountByQueryText(ctx context.Context, queryText string) (int, error)
 }
 
@@ -30,17 +30,17 @@ func NewSearchLogService(db database.SearchLogRepository, cache cache.LatestClie
 	}
 }
 
-func (sls searchLogService) LogSearch(ctx context.Context, clientKey, queryText string) error {
+func (sls searchLogService) LogSearch(ctx context.Context, clientIdentifier, queryText string) error {
 	currentNormalizedQueryText := strings.TrimSpace(strings.ToLower(queryText))
 
 	// Immediately set the latest client search in cache
 	currentQueryTimeUnix := time.Now().Unix()
 	clientQueryValue := cache.NewClientQueryValue(currentNormalizedQueryText, currentQueryTimeUnix)
-	if err := sls.cache.Set(ctx, clientKey, clientQueryValue); err != nil {
+	if err := sls.cache.Set(ctx, clientIdentifier, clientQueryValue); err != nil {
 		return err
 	}
 
-	// In logSearchDelaySeconds seconds, make a request to store the search log in the database
+	// Attempt to persist the search log in the background
 	go func() {
 		backgroundContext := context.Background()
 
@@ -49,7 +49,7 @@ func (sls searchLogService) LogSearch(ctx context.Context, clientKey, queryText 
 		time.Sleep(config.GetLogSearchDebounceDelaySeconds())
 
 		// Get latest user client query from cache
-		latestClientQueryValue, err := sls.cache.Get(backgroundContext, clientKey)
+		latestClientQueryValue, err := sls.cache.Get(backgroundContext, clientIdentifier)
 		if err != nil {
 			sls.logger.Error("Error getting latest client query from cache", "error", err)
 			return
@@ -63,8 +63,8 @@ func (sls searchLogService) LogSearch(ctx context.Context, clientKey, queryText 
 			sls.logger.Error("Error logging search", "error", err, "queryText", currentNormalizedQueryText)
 		}
 
-		if err := sls.cache.Delete(backgroundContext, clientKey); err != nil {
-			sls.logger.Error("Error deleting client query from cache", "error", err, "clientKey", clientKey)
+		if err := sls.cache.Delete(backgroundContext, clientIdentifier); err != nil {
+			sls.logger.Error("Error deleting client query from cache", "error", err, "clientIdentifier", clientIdentifier)
 		}
 	}()
 	return nil

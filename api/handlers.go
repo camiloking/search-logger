@@ -26,7 +26,7 @@ func RegisterRoutes(r *gin.Engine, dbRepo database.SearchLogRepository, cacheRep
 			return
 		}
 
-		//TODO: generate from userID header + IP address. userID would likely come from decoded JWT token.
+		// TODO: create clientIdentifier from userID + IP address. userID would likely come from a decoded JWT token. If userID is not present, we can rely on IP address.
 		clientIdentifier := ""
 		err := srv.LogSearch(c.Request.Context(), clientIdentifier, searchLog.QueryText)
 		if err != nil {
